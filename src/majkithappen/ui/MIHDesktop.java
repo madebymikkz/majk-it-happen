@@ -1,6 +1,6 @@
 /*
  * MIHDesktop -- the Majk It Happen desktop client
- * Copyright (c) 2015 Michael Wihlborg
+ * Copyright (c) 2015, 2016 Michael Wihlborg
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import majkithappen.tasks.*;
+import madebymikkz.simpledateinput.*;
 
 /**
  * "Majk It Happen" GUI client
@@ -311,24 +312,9 @@ public class MIHDesktop extends JFrame
 			JTextField descTxf = new JTextField(10);
 			row2.add(descLbl);
 			row2.add(descTxf);
-		// Third row
-			JPanel row3 = new JPanel();
-			row3.setLayout(new BoxLayout(row3, BoxLayout.Y_AXIS));
-		// Date
-			JPanel row3a = new JPanel();
-			JLabel dateLbl = new JLabel("Date (YYYY-MM-DD):");
-			JTextField dateTxf = new JTextField(10);
-			row3a.add(dateLbl);
-			row3a.add(dateTxf);
-		// Time
-			JPanel row3b = new JPanel();
-			JLabel timeLbl = new JLabel("Time (HH:MM):");
-			JTextField timeTxf = new JTextField(5);
-			row3b.add(timeLbl);
-			row3b.add(timeTxf);
+		// Date/time row
+			SimpleDateInput row3 = new SimpleDateInput();
 		// Add rows to panel
-			row3.add(row3a);
-			row3.add(row3b);
 			newTaskPnl.add(row1);
 			newTaskPnl.add(row2);
 			newTaskPnl.add(row3);
@@ -341,9 +327,8 @@ public class MIHDesktop extends JFrame
 		// Get and parse results from panel
 			String newName = nameTxf.getText().trim();
 			String newDesc = descTxf.getText().trim();
-			String newDate = dateTxf.getText().trim();
-			String newTime = timeTxf.getText().trim();
-			
+			String newDate = row3.getDate();
+			String newTime = row3.getTime();			
 			if (newName.length() < 1)	// Error checking
 			{
 				JOptionPane.showMessageDialog(MIHDesktop.this, "Name must not be empty!", "Error", JOptionPane.ERROR_MESSAGE);
