@@ -126,6 +126,10 @@ public class MIHDesktop extends JFrame
 		add(centerPanel, BorderLayout.CENTER);
 		add(rightPanel, BorderLayout.EAST);
 		
+	// Add display update timer
+		Timer t = new Timer(1000, new DateLnr());
+		t.start();
+		
 	// Prepare window
 		pack();
 		setResizable(false);
@@ -473,6 +477,65 @@ public class MIHDesktop extends JFrame
 		public void actionPerformed(ActionEvent ave)
 		{
 			exitProgram();
+		}
+	}
+	
+	/**
+	 * Listener called by the timer that updates the displayed due date
+	 * @author Michael Wihlborg
+	 */
+	private class DateLnr implements ActionListener
+	{
+		/**
+		 * Updates the displayed due date
+		 * @param ave the ActionEvent that fired the listener
+		 */
+		public void actionPerformed(ActionEvent ave)
+		{
+		// Get task
+			Task selectedTask = getSelectedTask();
+		// Do nothing if there is no selected task, as this function is fired twice in certain situations
+			if (selectedTask == null)
+				return;
+		///////////////// THE BIG "FIGURE OUT WHAT DUE DATE TO SHOW" FUNCTION /////////////////
+		//                            (should be moved, but where?)
+			String due;
+			if (selectedTask.getDone())
+				due = "done";
+			else
+			{
+				if (selectedTask.getHoursRemaining() > 0)
+				{
+					if (selectedTask.getHoursRemaining() > 1)
+						due = String.format("%d hours remaining", selectedTask.getHoursRemaining());
+					else
+						due = "1 hour remaining";
+				}
+				else if (selectedTask.getMinutesRemaining() > 0)
+				{
+					if (selectedTask.getMinutesRemaining() > 1)
+						due = String.format("%d minutes remaining", selectedTask.getMinutesRemaining());
+					else
+						due = "1 minute remaining";
+				}
+				else if (selectedTask.getSecondsRemaining() > 0)
+				{
+					if (selectedTask.getSecondsRemaining() > 1)
+						due = String.format("%d seconds remaining", selectedTask.getSecondsRemaining());
+					else
+						due = "1 second remaining";
+				}
+				else
+				// add code to show how late a task is
+					due = "task is late";
+			}
+			dateLbl.setText(String.format("Due: %s", due));
+			
+		// Activate "set done" button if task is not done
+			if (!selectedTask.getDone())
+				setDoneBtn.setEnabled(true);
+			else
+				setDoneBtn.setEnabled(false);
 		}
 	}
 }
