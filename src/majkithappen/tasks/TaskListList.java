@@ -52,6 +52,15 @@ public class TaskListList
 		lists.add(new TaskList(listName));
 	}
 	
+	/**
+	 * Adds a new task list to the collection
+	 * @param tl TaskList that is to be added
+	 */
+	public void newTaskList(TaskList tl)
+	{
+		lists.add(tl);
+	}
+	
 // Get-set methods
 	/**
 	 * Returns number of task lists in collection

@@ -1,6 +1,6 @@
 /*
  * MIHTextClient -- a text mode interface for Majk It Happen
- * Copyright (c) 2015 Michael Wihlborg
+ * Copyright (c) 2015, 2016 Michael Wihlborg
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,10 @@
 package majkithappen.ui;
 
 import java.util.Scanner;
+import java.io.IOException;
 import java.time.*;
-import java.util.ArrayList;
 import majkithappen.tasks.*;
+import majkithappen.io.*;
 
 public class MIHTextClient
 {
@@ -52,6 +53,8 @@ public class MIHTextClient
 			System.out.println("4 - add task to task list");
 			System.out.println("5 - mark task as done");
 			System.out.println("6 - quit");
+			System.out.println("7 - save task lists to file");
+			System.out.println("8 - load task lists from file");
 		// Get choice
 			System.out.print("Choice: ");
 			input = scan.nextLine().trim();
@@ -75,6 +78,12 @@ public class MIHTextClient
 					break;
 				case "6":
 					return;
+				case "7":
+					saveTasks();
+					break;
+				case "8":
+					loadTasks();
+					break;
 				default:
 					System.out.printf("%s is not a valid choice!%n", input);
 			}
@@ -115,7 +124,8 @@ public class MIHTextClient
 			for (int j = 0; j < l.getNoOfTasks(); j++)
 			{
 				Task t = l.getTask(j);
-				System.out.printf("\t\t%s ", t.getName());
+				System.out.printf("\t\t%s%n", t.getName());
+				System.out.printf("\t\t%s%n", t.getDescription());
 				int days = t.getDaysRemaining();
 				if (days < 1)
 				{
@@ -123,17 +133,17 @@ public class MIHTextClient
 					if (hours < 1)
 					{
 						int mins = t.getMinutesRemaining();
-						System.out.printf("%d minuter kvar ", hours);
+						System.out.printf("\t\t%d minuter kvar%n", mins);
 					}
 					else
-						System.out.printf("%d timmar kvar ", hours);
+						System.out.printf("\t\t%d timmar kvar%n", hours);
 				}
 				else
-					System.out.printf("%d dagar kvar ", days);
+					System.out.printf("\t\t%d dagar kvar%n", days);
 				if (l.getTask(j).getDone())
-					System.out.println("Done");
+					System.out.println("\t\tDone");
 				else
-					System.out.println("Not done");
+					System.out.println("\t\tNot done");
 			}
 		}
 	}
@@ -212,5 +222,42 @@ public class MIHTextClient
 			return;
 		}
 		t.setDone();
+	}
+	
+	private static void saveTasks()
+	{
+		// Ask for filename
+		System.out.print("File name: ");
+		String filename = scan.nextLine().trim();
+		
+		// Save tasks to file
+		try
+		{
+			TaskListIO.saveTaskListList(filename, lists);
+		}
+		catch (IOException e)
+		{
+			System.out.println("Error when saving: " + e.getMessage());
+		}
+	}
+	
+	private static void loadTasks()
+	{
+		// Ask for filename
+		System.out.print("File name: ");
+		String filename = scan.nextLine().trim();
+		
+		// Empty any current tasks
+		try
+		{
+			TaskListList tll = TaskListIO.loadTaskListList(filename);
+			if (tll == null)
+				System.exit(-1);
+			lists = tll;
+		}
+		catch (IOException e)
+		{
+			System.out.println("Error when loading: " + e.getMessage());
+		}
 	}
 }
