@@ -626,6 +626,13 @@ public class MIHDesktop extends JFrame
 				// Save to file
 				try
 				{
+					// Warn if the file already exists
+					if (fc.getSelectedFile().exists())
+					{
+						int i = JOptionPane.showConfirmDialog(MIHDesktop.this, "The selected file already exists. Do you want to overwrite it?", "Warning", JOptionPane.YES_NO_OPTION);
+						if (i == JOptionPane.NO_OPTION)
+							return;
+					}
 					TaskListIO.saveTaskListList(fc.getSelectedFile().getPath(), list);
 					unsavedChanges = false;
 				}
