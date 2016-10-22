@@ -26,8 +26,11 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+
+import majkithappen.io.TaskListIO;
 import majkithappen.tasks.*;
 import madebymikkz.simpledateinput.*;
 
@@ -45,6 +48,8 @@ public class MIHDesktop extends JFrame
 	private String selectedList = null;
 	private JLabel nameLbl, descLbl, dateLbl;
 	private JList<String> taskLst;
+	private JFileChooser fc = new JFileChooser();
+	private boolean unsavedChanges = false;
 	
 /* ****************************** Constructor ****************************** */
 	/**
@@ -58,9 +63,16 @@ public class MIHDesktop extends JFrame
 		JMenuBar menu = new JMenuBar();
 	// Menu bar components
 		JMenu fileMenu = new JMenu("File");
+		JMenuItem saveItem = new JMenuItem("Save");
+		saveItem.addActionListener(new SaveLnr());
+		JMenuItem loadItem = new JMenuItem("Load");
+		loadItem.addActionListener(new OpenLnr());
 		JMenuItem quitItem = new JMenuItem("Quit");
 		quitItem.addActionListener(new ExitLnr());
 	// Create menu bar
+		fileMenu.add(saveItem);
+		fileMenu.add(loadItem);
+		fileMenu.addSeparator();
 		fileMenu.add(quitItem);
 		menu.add(fileMenu);
 		setJMenuBar(menu);
@@ -219,6 +231,13 @@ public class MIHDesktop extends JFrame
 	 */
 	private void exitProgram()
 	{
+		// Warn if unsaved changes
+		if (unsavedChanges)
+		{
+			int yn = JOptionPane.showConfirmDialog(MIHDesktop.this, "All unsaved changes will be lost. Do you want to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+			if (yn == JOptionPane.NO_OPTION)
+				return;
+		}
 		System.exit(0);
 	}
 	
@@ -262,6 +281,7 @@ public class MIHDesktop extends JFrame
 			
 		// Update
 			populateBox();
+			unsavedChanges = true;
 		}
 	}
 	
@@ -343,9 +363,10 @@ public class MIHDesktop extends JFrame
 			{
 				LocalDateTime newDateTime = LocalDateTime.parse(String.format("%sT%s:00", newDate, newTime));
 				
-		// Create new task
+			// Create new task
 				getSelectedList().addTask(new Task(newName, newDesc, newDateTime));
 				populateLst(getSelectedList());
+				unsavedChanges = true;
 			}
 			catch (DateTimeParseException e)	// Error checking
 			{
@@ -444,6 +465,8 @@ public class MIHDesktop extends JFrame
 				populateLst(getSelectedList());
 			// Set the selected task as selected again
 				taskLst.setSelectedValue(name, true);
+			// Note that changes have been made
+				unsavedChanges = true;
 			}
 		}
 	}
@@ -536,6 +559,81 @@ public class MIHDesktop extends JFrame
 				setDoneBtn.setEnabled(true);
 			else
 				setDoneBtn.setEnabled(false);
+		}
+	}
+
+	/**
+	 * Listener for the "Open" button
+	 * @author Michael Wihlborg
+	 */
+	private class OpenLnr implements ActionListener
+	{
+		public void actionPerformed(ActionEvent ave)
+		{
+			// Warn if unsaved changes
+			if (unsavedChanges)
+			{
+				int yn = JOptionPane.showConfirmDialog(MIHDesktop.this, "All unsaved changes will be lost. Do you want to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+				if (yn == JOptionPane.NO_OPTION)
+					return;
+			}
+			
+			// Get file to open
+			int open = fc.showOpenDialog(MIHDesktop.this);
+			if (open == JFileChooser.APPROVE_OPTION)
+			{
+				// Load task lists from file
+				try
+				{
+					TaskListList tll = TaskListIO.loadTaskListList(fc.getSelectedFile().getPath());
+					if (tll == null)
+					{
+						JOptionPane.showMessageDialog(MIHDesktop.this,"Not a valid Majk It Happen file", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					
+					// Clear old data and load new
+					nameLbl.setText("Name:");
+					descLbl.setText("Description:");
+					dateLbl.setText("Due:");
+					taskLstMdl.clear();
+					
+					list = tll;
+					populateBox();
+					unsavedChanges = false;
+					
+				}
+				catch (IOException e)
+				{
+					JOptionPane.showMessageDialog(MIHDesktop.this, String.format("Error loading file: %s", e.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Listener for the "Save" button
+	 * @author Michael Wihlborg
+	 */
+	private class SaveLnr implements ActionListener
+	{
+		public void actionPerformed(ActionEvent ave)
+		{
+			// Get filename to save to
+			int save = fc.showSaveDialog(MIHDesktop.this);
+			if (save == JFileChooser.APPROVE_OPTION)
+			{
+				// Save to file
+				try
+				{
+					TaskListIO.saveTaskListList(fc.getSelectedFile().getPath(), list);
+					unsavedChanges = false;
+				}
+				catch (IOException e)
+				{
+					JOptionPane.showMessageDialog(MIHDesktop.this, String.format("Error saving file: %s", e.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
 		}
 	}
 }
